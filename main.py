@@ -1,8 +1,15 @@
+import logging
 import discord
 import asyncio
 import re
+import uvloop
 
-client = discord.Client()
+logging.basicConfig(level=logging.DEBUG)
+asyncio.set_event_loop_policy(uvloop.EventLoopPolicy())
+loop = uvloop.new_event_loop()
+
+
+client = discord.Client(loop=loop)
 
 
 @client.event
@@ -34,6 +41,8 @@ def check_phab_object (message):
 
 @client.event
 async def on_message(message):
+    if message.author == 'phabbot':
+        return
     if message.content.startswith('!test'):
         counter = 0
         tmp = await client.send_message(message.channel, 'Calculating messages...')
