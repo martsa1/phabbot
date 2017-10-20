@@ -1,63 +1,86 @@
+''' Core code for Phabricator Discord bot, phabbot
+'''
 import logging
-import discord
 import asyncio
 import re
 import uvloop
 
-logging.basicConfig(level=logging.DEBUG)
+import discord
+
+import behaviours
+
+logging.basicConfig(level=logging.INFO)
 asyncio.set_event_loop_policy(uvloop.EventLoopPolicy())
-loop = uvloop.new_event_loop()
+LOOP = uvloop.new_event_loop()
 
 
-client = discord.Client(loop=loop)
+CLIENT = discord.Client(loop=LOOP)
 
 
-@client.event
+@CLIENT.event
 async def on_ready():
-    print('Logged in as')
-    print(client.user.name)
-    print(client.user.id)
+    ''' Log Phabbot base details on connection to Discord
+    '''
+    print(
+        'Logged in as {}, with ID: {}'.format(
+            CLIENT.user.name, CLIENT.user.id
+        )
+    )
     print('------')
 
 
-def check_phab_object (message):
-    ''' Checks if the user mentioned a !task
+def learn_behaviours():
+    ''' Returns a mapping of regex strings and callables, to be used when
+        on_message triggers, to react to messages.
+
+        TODO: After retrieving all behaviours, rebuild the behaviour mapping
+              with compiled patterns before returning
     '''
-    task_regex = re.compile(r'!(T\d+)')
-    diff_regex = re.compile(r'!(D\d+)')
-    # repo_regex = re.compile(r'!(r\d+)')
-    # commit_regex = re.compile(r'!(r\d+)')
-    task_result = task_regex.search(str(message))
-    diff_result = diff_regex.search(str(message))
-    response = ''
-    if task_result:
-        response = 'You mentioned a task!\n{} to be precise!'.format(task_result.group(1))
-    if diff_result:
-        response += 'You mentioned a task!\n{} to be precise!'.format(diff_result.group(1))
+    behaviour_map = {}
+    for _, function in behaviours.__dict__.items():
+        if callable(function):
+            function_doc = function.__doc__.strip().split('\n')
+            for line in function_doc:
+                if line.startswith('Trigger: '):
+                    pattern = line.split('Trigger: ')[1]
+                    pattern = re.search(r"^r'(.+)'$", pattern).group(1)
+                    behaviour_map.update(
+                        {
+                            pattern: function
+                        }
+                    )
 
-    if response == '':
-        return None
-    return response
+    return behaviour_map
 
-@client.event
+
+@CLIENT.event
 async def on_message(message):
-    if message.author == 'phabbot':
+    ''' Process messages reeived on channels phabbot is listening to
+    '''
+    # Phabbot must never talk to itself
+    if 'phabbot' in message.author.name:
         return
+
     if message.content.startswith('!test'):
         counter = 0
-        tmp = await client.send_message(message.channel, 'Calculating messages...')
-        async for log in client.logs_from(message.channel, limit=100):
+        tmp = await CLIENT.send_message(message.channel, 'Calculating messages...')
+        async for log in CLIENT.logs_from(message.channel, limit=100):
             if log.author == message.author:
                 counter += 1
 
-        await client.edit_message(tmp, 'You have {} messages.'.format(counter))
+        await CLIENT.edit_message(tmp, 'You have {} messages.'.format(counter))
     elif message.content.startswith('!sleep'):
         await asyncio.sleep(5)
-        await client.send_message(message.channel, 'Done sleeping')
+        await CLIENT.send_message(message.channel, 'Done sleeping')
 
-    print('Checking for a task in: {}'.format(message.content))
-    task = check_phab_object(message.content)
-    if task is not None:
-        await client.send_message(message.channel, task)
+    learned_behaviours = learn_behaviours()
+    for pattern in learned_behaviours:
+        print('pattern: {}, message: {}'.format(pattern, message.content))
+        match = re.search(pattern, message.content)
+        if match is not None:
+            print('Found a match! Calling behaviour')
+            await learned_behaviours[pattern](CLIENT, match, message)
 
-client.run('MzY5OTQ5MTM2MjM5MzI5Mjgz.DMgC5A.MrxR71mAAiYIRDZgjF5y7fztZRU')
+
+if __name__ == '__main__':
+    CLIENT.run('MzY5OTQ5MTM2MjM5MzI5Mjgz.DMgC5A.MrxR71mAAiYIRDZgjF5y7fztZRU')
