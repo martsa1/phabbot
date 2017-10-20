@@ -3,18 +3,15 @@
 import logging
 import asyncio
 import re
-import uvloop
 
 import discord
 
 import behaviours
 
 logging.basicConfig(level=logging.INFO)
-asyncio.set_event_loop_policy(uvloop.EventLoopPolicy())
-LOOP = uvloop.new_event_loop()
 
 
-CLIENT = discord.Client(loop=LOOP)
+CLIENT = discord.Client()
 
 
 @CLIENT.event
@@ -60,18 +57,6 @@ async def on_message(message):
     # Phabbot must never talk to itself
     if 'phabbot' in message.author.name:
         return
-
-    if message.content.startswith('!test'):
-        counter = 0
-        tmp = await CLIENT.send_message(message.channel, 'Calculating messages...')
-        async for log in CLIENT.logs_from(message.channel, limit=100):
-            if log.author == message.author:
-                counter += 1
-
-        await CLIENT.edit_message(tmp, 'You have {} messages.'.format(counter))
-    elif message.content.startswith('!sleep'):
-        await asyncio.sleep(5)
-        await CLIENT.send_message(message.channel, 'Done sleeping')
 
     learned_behaviours = learn_behaviours()
     for pattern in learned_behaviours:
