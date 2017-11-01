@@ -20,6 +20,17 @@ async def help_prompt(client, phab_url, match, message):
         await client.send_message(message.channel, response)
 
 
+async def handle_file_mention(client, phab_url, match, message):
+    ''' Trigger: r'!(F\d+)'
+    '''
+    if match:
+        response = '{}{}'.format(
+            phab_url,
+            match.group(1)
+        )
+        await client.send_message(message.channel, response)
+
+
 async def handle_paste_mention(client, phab_url, match, message):
     ''' Trigger: r'!(P\d+)'
     '''
