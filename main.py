@@ -2,9 +2,11 @@
 '''
 import logging
 import asyncio
+import os
 import re
 
 import discord
+import yaml
 
 import behaviours
 
@@ -12,6 +14,8 @@ logging.basicConfig(level=logging.INFO)
 
 
 CLIENT = discord.Client()
+PHAB_URL = ''
+LEARNED_BEHAVIOURS = {}
 
 
 @CLIENT.event
@@ -58,14 +62,33 @@ async def on_message(message):
     if 'phabbot' in message.author.name:
         return
 
-    learned_behaviours = learn_behaviours()
-    for pattern in learned_behaviours:
+    for pattern in LEARNED_BEHAVIOURS:
         print('pattern: {}, message: {}'.format(pattern, message.content))
         match = re.search(pattern, message.content)
         if match is not None:
             print('Found a match! Calling behaviour')
-            await learned_behaviours[pattern](CLIENT, match, message)
+            await LEARNED_BEHAVIOURS[pattern](CLIENT, PHAB_URL, match, message)
 
 
 if __name__ == '__main__':
-    CLIENT.run('MzY5OTQ5MTM2MjM5MzI5Mjgz.DMgC5A.MrxR71mAAiYIRDZgjF5y7fztZRU')
+    LEARNED_BEHAVIOURS = learn_behaviours()
+
+    config_file_path = os.path.join(os.path.dirname(__file__), 'config.yaml')
+    if os.path.isfile(config_file_path):
+        with open(config_file_path, 'r') as config_file:
+            config = yaml.load(config_file)
+
+    discord_token = config.get('discord_token', None)
+    if discord_token is None:
+        raise ValueError('Discord token is required for operation!  I need to '
+                         'know who I am...')
+
+    PHAB_URL = config.get('phabricator_url', None)
+    if PHAB_URL is None:
+        raise ValueError('Phabricator URL is required for operation!  I need '
+                         'to know where to point you!')
+
+    if PHAB_URL[-1] != '/':
+        PHAB_URL += '/'
+
+    CLIENT.run(discord_token)

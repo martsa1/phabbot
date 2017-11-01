@@ -1,3 +1,6 @@
+# Config.yaml shouldn't be included in source!
+config.yaml
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]

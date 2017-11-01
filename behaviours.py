@@ -1,9 +1,10 @@
 ''' Phabbot's repertoire of learnt behavious.
 '''
 import asyncio
+import re
 
 
-async def help_prompt(client, match, message):
+async def help_prompt(client, phab_url, match, message):
     ''' Trigger: r'@phabbot help'
     '''
     if match:
@@ -19,21 +20,23 @@ async def help_prompt(client, match, message):
         await client.send_message(message.channel, response)
 
 
-async def handle_task_mention(client, match, message):
+async def handle_task_mention(client, phab_url, match, message):
     ''' Trigger: r'(T\d+)'
     '''
     if match:
-        response = 'You mentioned a task!\n{} to be precise!'.format(
+        response = '{}{}'.format(
+            phab_url,
             match.group(1)
         )
         await client.send_message(message.channel, response)
 
 
-async def handle_diff_mention(client, match, message):
+async def handle_diff_mention(client, phab_url, match, message):
     ''' Trigger: r'(D\d+)'
     '''
     if match:
-        response = 'You mentioned a task!\n{} to be precise!'.format(
+        response = '{}{}'.format(
+            phab_url,
             match.group(1)
         )
         await client.send_message(message.channel, response)
