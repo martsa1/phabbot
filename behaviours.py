@@ -20,8 +20,8 @@ async def help_prompt(client, phab_url, match, message):
         await client.send_message(message.channel, response)
 
 
-async def handle_file_mention(client, phab_url, match, message):
-    ''' Trigger: r'!(F\d+)'
+async def handle_mono_mention(client, phab_url, match, message):
+    ''' Trigger: r'!([rPTDF]\d+)'
     '''
     if match:
         response = '{}{}'.format(
@@ -31,8 +31,8 @@ async def handle_file_mention(client, phab_url, match, message):
         await client.send_message(message.channel, response)
 
 
-async def handle_paste_mention(client, phab_url, match, message):
-    ''' Trigger: r'!(P\d+)'
+async def handle_commit_mention(client, phab_url, match, message):
+    ''' Trigger: r'!(r\w+)'
     '''
     if match:
         response = '{}{}'.format(
@@ -42,26 +42,37 @@ async def handle_paste_mention(client, phab_url, match, message):
         await client.send_message(message.channel, response)
 
 
-async def handle_task_mention(client, phab_url, match, message):
-    ''' Trigger: r'!(T\d+)'
-    '''
-    if match:
-        response = '{}{}'.format(
-            phab_url,
-            match.group(1)
-        )
-        await client.send_message(message.channel, response)
+# async def handle_paste_mention(client, phab_url, match, message):
+#     ''' Trigger: r'!(P\d+)'
+#     '''
+#     if match:
+#         response = '{}{}'.format(
+#             phab_url,
+#             match.group(1)
+#         )
+#         await client.send_message(message.channel, response)
 
 
-async def handle_diff_mention(client, phab_url, match, message):
-    ''' Trigger: r'!(D\d+)'
-    '''
-    if match:
-        response = '{}{}'.format(
-            phab_url,
-            match.group(1)
-        )
-        await client.send_message(message.channel, response)
+# async def handle_task_mention(client, phab_url, match, message):
+#     ''' Trigger: r'!(T\d+)'
+#     '''
+#     if match:
+#         response = '{}{}'.format(
+#             phab_url,
+#             match.group(1)
+#         )
+#         await client.send_message(message.channel, response)
+
+
+# async def handle_diff_mention(client, phab_url, match, message):
+#     ''' Trigger: r'!(D\d+)'
+#     '''
+#     if match:
+#         response = '{}{}'.format(
+#             phab_url,
+#             match.group(1)
+#         )
+#         await client.send_message(message.channel, response)
 
 
 async def handle_test(client, _, message):
