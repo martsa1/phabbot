@@ -22,12 +22,12 @@ LEARNED_BEHAVIOURS = {}
 async def on_ready():
     ''' Log Phabbot base details on connection to Discord
     '''
-    print(
+    logging.info(
         'Logged in as {}, with ID: {}'.format(
             CLIENT.user.name, CLIENT.user.id
         )
     )
-    print('------')
+    logging.info('------')
 
 
 def learn_behaviours():
