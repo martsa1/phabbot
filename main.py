@@ -64,10 +64,15 @@ async def on_message(message):
 
     for pattern in LEARNED_BEHAVIOURS:
         print('pattern: {}, message: {}'.format(pattern, message.content))
-        match = re.search(pattern, message.content)
-        if match is not None:
+        matches = re.findall(pattern, message.content)
+        if matches is not None:
             print('Found a match! Calling behaviour')
-            await LEARNED_BEHAVIOURS[pattern](CLIENT, PHAB_URL, match, message)
+            await LEARNED_BEHAVIOURS[pattern](
+                CLIENT,
+                PHAB_URL,
+                matches,
+                message
+            )
 
 
 if __name__ == '__main__':
