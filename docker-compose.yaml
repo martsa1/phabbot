@@ -5,3 +5,4 @@ services:
     build:
       context: .
     image: phabbot:latest
+    restart: always
